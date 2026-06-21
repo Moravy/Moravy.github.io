@@ -1,4 +1,5 @@
 ---
+publishedAt: 2026-07-14
 summary: Moravy argues the SDLC's phases were engineering answers to human constraints, and AI agents shift several of those costs. He examines each phase, notes where review and testing now matter more, and concludes good processes should match the constraints a team actually has.
 ---
 # How AI Agents Are Shifting the Software Development Lifecycle

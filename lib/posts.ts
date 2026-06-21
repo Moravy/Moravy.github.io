@@ -1,5 +1,11 @@
 // SERVER-ONLY. Reads the blog markdown in content/blog and renders it.
-// Each post starts with a small frontmatter block (`summary:`) then an `# H1`.
+// Each post opens with a small frontmatter block (`summary:`, `publishedAt:`)
+// then an `# H1`.
+//
+// Scheduled publishing (the weekly drip): a post stays hidden until its
+// `publishedAt` date has arrived, compared at BUILD time. The deploy workflow
+// re-runs on a daily schedule, so a future-dated post goes live on its date with
+// no one touching the repo. A post with no `publishedAt` is always visible.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -7,7 +13,7 @@ import { Marked } from "marked";
 
 const BLOG_DIR = path.join(process.cwd(), "content", "blog");
 
-// Curated order — most personal / launch-worthy first.
+// Curated order, used only to break ties between posts that share a date.
 const ORDER = [
   "how-ai-gave-me-confidence",
   "ai-first-ai-native-engineer-the-defaults-i-changed",
@@ -25,6 +31,8 @@ export interface PostMeta {
   title: string;
   excerpt: string;
   summary: string;
+  publishedAt: string; // "YYYY-MM-DD", or "" if unset
+  dateLabel: string; // human label, e.g. "20 Jun 2026"
 }
 export interface Post extends PostMeta {
   html: string;
@@ -35,34 +43,69 @@ function readRaw(slug: string): string {
   return fs.readFileSync(path.join(BLOG_DIR, `${slug}.md`), "utf8");
 }
 
-function orderedSlugs(): string[] {
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function formatDate(iso: string): string {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return "";
+  return `${parseInt(m[3], 10)} ${MONTHS[parseInt(m[2], 10) - 1]} ${m[1]}`;
+}
+
+// A post is live once its publish date has arrived (UTC, at build time). No date
+// means always live, and an unparseable date never hides a post.
+function isPublished(publishedAt: string): boolean {
+  if (!publishedAt) return true;
+  const t = Date.parse(`${publishedAt}T00:00:00Z`);
+  if (Number.isNaN(t)) return true;
+  return t <= Date.now();
+}
+
+function parseFrontmatter(raw: string): { body: string; summary: string; publishedAt: string } {
+  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  if (!m) return { body: raw, summary: "", publishedAt: "" };
+  const fm = m[1];
+  const summary = fm.match(/^summary:\s*(.+)$/m)?.[1].trim() ?? "";
+  const publishedAt = fm.match(/^publishedAt:\s*(.+)$/m)?.[1].trim() ?? "";
+  return { body: raw.slice(m[0].length), summary, publishedAt };
+}
+
+interface SlugInfo {
+  slug: string;
+  publishedAt: string;
+}
+
+function allSlugInfo(): SlugInfo[] {
   let files: string[] = [];
   try {
     files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith(".md"));
   } catch {
     return [];
   }
-  return files
-    .map((f) => f.replace(/\.md$/, ""))
+  return files.map((f) => {
+    const slug = f.replace(/\.md$/, "");
+    return { slug, publishedAt: parseFrontmatter(readRaw(slug)).publishedAt };
+  });
+}
+
+// Live posts only, newest first; curated ORDER breaks ties on an equal date.
+function publishedSlugs(): string[] {
+  return allSlugInfo()
+    .filter((s) => isPublished(s.publishedAt))
     .sort((a, b) => {
-      const ia = ORDER.indexOf(a);
-      const ib = ORDER.indexOf(b);
-      if (ia === -1 && ib === -1) return a.localeCompare(b);
+      const ta = a.publishedAt ? Date.parse(a.publishedAt) : 0;
+      const tb = b.publishedAt ? Date.parse(b.publishedAt) : 0;
+      if (ta !== tb) return tb - ta;
+      const ia = ORDER.indexOf(a.slug);
+      const ib = ORDER.indexOf(b.slug);
+      if (ia === -1 && ib === -1) return a.slug.localeCompare(b.slug);
       if (ia === -1) return 1;
       if (ib === -1) return -1;
       return ia - ib;
-    });
-}
-
-function stripFrontmatter(raw: string): { body: string; summary: string } {
-  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
-  if (!m) return { body: raw, summary: "" };
-  const sm = m[1].match(/^summary:\s*(.+)$/m);
-  return { body: raw.slice(m[0].length), summary: sm ? sm[1].trim() : "" };
+    })
+    .map((s) => s.slug);
 }
 
 function parse(slug: string, raw: string) {
-  const { body: afterFm, summary } = stripFrontmatter(raw);
+  const { body: afterFm, summary, publishedAt } = parseFrontmatter(raw);
   const lines = afterFm.split(/\r?\n/);
   let title = slug.replace(/-/g, " ");
   const h1 = lines.findIndex((l) => l.startsWith("# "));
@@ -78,7 +121,7 @@ function parse(slug: string, raw: string) {
     }) ?? ""
   ).trim();
 
-  return { title, body, excerpt, summary };
+  return { title, body, excerpt, summary, publishedAt, dateLabel: formatDate(publishedAt) };
 }
 
 // rewrite cross-post relative links (./slug.md) to /writing/slug
@@ -125,14 +168,14 @@ function render(md: string): { html: string; toc: TocItem[] } {
 }
 
 export function getAllPosts(): PostMeta[] {
-  return orderedSlugs().map((slug) => {
-    const { title, excerpt, summary } = parse(slug, readRaw(slug));
-    return { slug, title, excerpt, summary };
+  return publishedSlugs().map((slug) => {
+    const { title, excerpt, summary, publishedAt, dateLabel } = parse(slug, readRaw(slug));
+    return { slug, title, excerpt, summary, publishedAt, dateLabel };
   });
 }
 
 export function getPostSlugs(): string[] {
-  return orderedSlugs();
+  return publishedSlugs();
 }
 
 export function getPost(slug: string): Post | null {
@@ -142,7 +185,8 @@ export function getPost(slug: string): Post | null {
   } catch {
     return null;
   }
-  const { title, body, excerpt, summary } = parse(slug, raw);
+  const { title, body, excerpt, summary, publishedAt, dateLabel } = parse(slug, raw);
+  if (!isPublished(publishedAt)) return null; // not live yet
   const { html, toc } = render(body);
-  return { slug, title, excerpt, summary, html, toc };
+  return { slug, title, excerpt, summary, publishedAt, dateLabel, html, toc };
 }

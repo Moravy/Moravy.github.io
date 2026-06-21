@@ -48,6 +48,7 @@ export default function WritingIndex() {
                 <Link className="post-link" href={`/writing/${p.slug}`}>
                   <span className="post-num">{String(i + 1).padStart(2, "0")}</span>
                   <span className="post-main">
+                    {p.dateLabel ? <span className="post-date">{p.dateLabel}</span> : null}
                     <span className="post-title">{p.title}</span>
                     <span className="post-excerpt">{p.excerpt}</span>
                   </span>

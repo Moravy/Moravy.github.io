@@ -816,6 +816,13 @@ section.block {
   line-height: 1;
 }
 .post-main { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.post-date {
+  font-family: var(--mono);
+  font-size: var(--label-sm);
+  letter-spacing: var(--label-sm-track);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
 .post-title {
   font-family: var(--serif);
   font-weight: 500;

@@ -1,4 +1,5 @@
 ---
+publishedAt: 2026-07-07
 summary: Moravy describes how he uses Claude Code across 101 work sessions, covering production investigations, parallel agent teams for feature work, code review, and career prep. He explains his approach to prompting conversationally, saving lessons to a memory file, building reusable skills, and grounding everything in a domain knowledge base.
 ---
 # how I use Claude Code day to day

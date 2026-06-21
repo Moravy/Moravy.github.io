@@ -3,6 +3,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # Daily rebuild so date-scheduled blog posts go live on their publishedAt date
+  # with no manual push. 18:00 UTC is about 6am in Auckland.
+  schedule:
+    - cron: "0 18 * * *"
   workflow_dispatch:
 
 # Allow GITHUB_TOKEN to deploy to Pages, and OIDC for the deploy step.

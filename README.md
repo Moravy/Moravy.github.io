@@ -1,52 +1,75 @@
-# moravy.oum — agent console
+# moravy-ai-site
 
-A personal site that behaves like a terminal you can talk to. Visitors type
-questions (or built-in commands) and a live AI assistant answers from a curated
-record of Moravy's work. The thesis: *don't argue that AI delivers value — let people
-interrogate the proof.*
+An editorial "Dossier" portfolio for Moravy Oum, a software engineer at Xero. The
+thesis: *don't take my word that AI is a force-multiplier, interrogate the proof.*
+The landing page invites visitors to ask questions and reads back curated,
+hand-written answers about real work. There is **no AI and no backend** at runtime:
+the "Ask" experience is a fully curated record (`lib/qa.ts`), so the whole site
+compiles to static files.
 
-- **Design:** amber-phosphor terminal — boot sequence, monospace, CRT vignette + scanlines, blinking cursor.
-- **Chat:** streaming Claude (**Haiku 4.5**) grounded in `lib/knowledge.ts`. Built-in shell commands (`help`, `whoami`, `work`, `ai`, `incidents`, `contact`, `clear`) answer instantly; anything else falls through to the AI.
-- **Stack:** Next.js 15 (App Router) · React 19 · `@anthropic-ai/sdk` · hand-written CSS (no UI framework).
+- **Design:** warm editorial print. Cream paper, ink, terracotta accent. Fraunces
+  (serif display) + Hanken Grotesk (sans) + IBM Plex Mono (labels). Hand-written
+  CSS, no UI framework.
+- **Ask:** a curated Q&A "Record" (`lib/qa.ts`) grouped into themed journeys with
+  progressive follow-ups. No API, no keyword matching, no free-text guessing.
+- **Writing:** markdown essays in `content/blog`, rendered at build time, with
+  scheduled weekly-drip publishing (see below).
+- **Stack:** Next.js 15 (App Router) · React 19 · `marked` · hand-written CSS.
+  Static export (`output: "export"`) hosted on GitHub Pages.
 
 ## Run locally
 
 ```bash
-cp .env.local.example .env.local      # then paste your key into ANTHROPIC_API_KEY
-npm install                           # already done if node_modules exists
-npm run dev                           # http://localhost:3000
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Without a key the site still runs — the AI replies with an "offline" notice and the
-built-in commands keep working.
+No environment variables are needed. There are no secrets and no server.
+
+## Build
+
+```bash
+npm run build      # writes a fully static site to ./out
+```
 
 ## Where to edit
 
 | What | File |
 |---|---|
-| What the AI knows / says about Moravy | `lib/knowledge.ts` (`KNOWLEDGE`, `SYSTEM_PROMPT`) |
-| Model (default Haiku 4.5) | `lib/knowledge.ts` (`CHAT_MODEL`) or `CHAT_MODEL` env var |
-| Boot lines, built-in commands, suggested questions, links | `lib/profile.ts` |
+| The Ask answers (the curated record) | `lib/qa.ts` |
+| Hero, highlights, stats, testimonials, links | `lib/profile.ts` |
+| Cohort-standing numbers | `lib/metrics.ts` |
+| Blog posts | `content/blog/*.md` |
 | Visual design | `app/globals.css` |
-| Console behaviour | `components/Console.tsx` |
 
-## Deploy (Vercel)
+## Writing: scheduled publishing
 
-1. Push this folder to a GitHub repo.
-2. Import it at [vercel.com/new](https://vercel.com/new).
-3. Add the env var **`ANTHROPIC_API_KEY`** in Project → Settings → Environment Variables.
-4. Deploy. Point a custom domain at it and update `metadataBase` in `app/layout.tsx`.
+Each post in `content/blog` opens with frontmatter:
 
-## Before it goes viral — read this
+```
+---
+summary: One-paragraph "30-second version" shown at the top of the post.
+publishedAt: 2026-06-30
+---
+# Title
+```
 
-The `/api/chat` endpoint spends your Anthropic credits on every visitor, and it's
-public. Haiku keeps cost low, and the route already caps tokens, trims history, and
-limits input length. But there is **no rate limiting** yet — if the LinkedIn post takes
-off, add one (e.g. Vercel KV / Upstash Ratelimit by IP) before, not after. A spend cap
-on the Anthropic console is a sensible backstop too.
+A post stays hidden until its `publishedAt` date arrives (compared at build time),
+then appears automatically, newest first. The deploy workflow runs on every push
+**and on a daily schedule**, so a future-dated post goes live on its date with no
+manual step. A post with no `publishedAt` is always visible. To change when a post
+drops, edit one date.
+
+## Deploy (GitHub Pages)
+
+Hosted at https://moravy.github.io via `.github/workflows/deploy.yml`:
+`npm ci` → `npm run build` → upload `out/` → deploy to Pages. Every push to `main`
+redeploys, and a daily scheduled run reveals any newly-due posts. Pages source is
+set to "GitHub Actions". `public/.nojekyll` stops Pages from stripping the
+`_next/` asset folder (without it, the site loads unstyled).
 
 ## Content altitude
 
-`lib/knowledge.ts` is deliberately written at "fuller detail, light scrub": real
-outcomes and numbers, but no internal ticket IDs, internal service/repo names, or
-coworkers' names. Keep that line when you edit it — it's a public endpoint.
+Public-safe by design: real outcomes and numbers, but no internal ticket IDs,
+service/repo names, or coworkers' names. Keep that line when editing, the repo is
+public.

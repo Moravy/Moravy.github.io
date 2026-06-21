@@ -1,4 +1,5 @@
 ---
+publishedAt: 2026-06-20
 summary: Moravy, an average developer stuck on a basic concept for years, describes how asking AI questions rebuilt his understanding and confidence. After running failed .NET migration experiments, he learned AI's real limits, presented his findings at his company, and now treats AI as a colleague while owning every output.
 ---
 # How AI Gave Me Confidence (From Your Average Developer)

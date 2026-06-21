@@ -1,4 +1,5 @@
 ---
+publishedAt: 2026-06-30
 summary: Moravy describes becoming an AI-first engineer, where AI is the default starting point across the whole development cycle, not a last resort. He explains how he learns codebases, works tickets, packages context into reusable knowledge, validates and owns AI output, and argues judgment, context, and accountability matter more, not less.
 ---
 # AI-First / AI-Native Engineer: The Defaults I Changed
