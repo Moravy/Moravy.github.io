@@ -579,6 +579,22 @@ a { color: inherit; }
   color: var(--ink-3);
   margin: 0;
 }
+.record-dm {
+  display: block;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--mono);
+  font-size: var(--label-sm);
+  letter-spacing: var(--label-sm-track);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-decoration: none;
+  transition: color 0.18s;
+}
+.record-dm span { color: var(--accent); white-space: nowrap; }
+.record-dm:hover { color: var(--ink-2); }
+.record-dm:hover span { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ── browse-all index ───────────────────────────────────────────── */
 .record-index { padding: clamp(20px, 4vh, 40px) 0 clamp(30px, 6vh, 56px); }

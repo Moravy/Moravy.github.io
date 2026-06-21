@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { nextSuggestions, themeIndex } from "@/lib/qa";
+import { SOCIAL } from "@/lib/profile";
 import type { Turn } from "./AskProvider";
 
 // "The Record" — a fully curated dossier interview. No text input / no AI:
@@ -178,6 +179,9 @@ export default function ChatTakeover({
               </button>
             </>
           )}
+          <a className="record-dm" href={SOCIAL.linkedin} target="_blank" rel="noopener noreferrer">
+            Question not answered here? <span>Message me on LinkedIn →</span>
+          </a>
         </footer>
       </div>
     </section>
