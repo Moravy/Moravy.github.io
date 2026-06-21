@@ -61,20 +61,20 @@ export const STATS = [
 // Anonymized to role, real recognition from his knowledge base.
 export const TESTIMONIALS = [
   {
-    quote: "Thank you Moravy for being my AI mentor. I've learnt so much, and I'll keep learning more.",
-    who: "A mentee, on another team",
+    quote: "In my team, you are the most prolific Claude user.",
+    who: "An SVP of engineering",
   },
   {
-    quote: "Your repo is so comprehensive I literally don't know how you get there. It's simply amazing.",
-    who: "An engineer he paired with",
+    quote: "Thank you Moravy for being my AI mentor. I've learnt so much, and I'll keep learning more.",
+    who: "A mentee, on another team",
   },
   {
     quote: "That's awesome!!! Thanks for sharing it.",
     who: "His engineering manager, on a tool he then adopted",
   },
   {
-    quote: "I love the knowledge share and the initiative you've shown.",
-    who: "A peer engineer",
+    quote: "Your repo is so comprehensive I literally don't know how you get there. It's simply amazing.",
+    who: "An engineer he paired with",
   },
 ];
 
